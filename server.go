@@ -32,8 +32,8 @@ func main() {
 			result gin.H
 		)
 		id := c.Param("id")
-		row := db.QueryRow("SELECT id, name, date FROM pic WHERE id = ?;", id)
-		err = row.Scan(&pic.Id, &pic.Name, &pic.Date)
+		row := db.QueryRow("SELECT id, name, picture FROM pic WHERE id = ?;", id)
+		err = row.Scan(&pic.Id, &pic.Name, &pic.Picture)
 		if err != nil {
 			result = gin.H{
 				"result": nil,
@@ -53,13 +53,13 @@ func main() {
 			pic  Pic
 			pics []Pic
 		)
-		rows, err := db.Query("SELECT id, name, date FROM pic;")
+		rows, err := db.Query("SELECT id, name, picture FROM pic;")
 		if err != nil {
 			log.Printf("Select Error : %s", err.Error())
 			return
 		}
 		for rows.Next() {
-			err = rows.Scan(&pic.Id, &pic.Name, &pic.Date)
+			err = rows.Scan(&pic.Id, &pic.Name, &pic.Picture)
 			pics = append(pics, pic)
 			if err != nil {
 				log.Printf("Select Error :%s", err.Error())
@@ -76,15 +76,15 @@ func main() {
 	r.POST("/pic", func(c *gin.Context) {
 		var buffer bytes.Buffer
 		name := c.PostForm("name")
-		date := c.PostForm("date")
-		stmt, err := db.Prepare("INSERT into pic(name,date)VALUE(?,?);")
+		picture := c.PostForm("picture")
+		stmt, err := db.Prepare("INSERT into pic(name,picture)VALUE(?,?);")
 		if err != nil {
 			log.Printf("Insert Error : %s", err.Error())
 			return
 		}
 		buffer.WriteString(name)
 		buffer.WriteString(" ")
-		buffer.WriteString(date)
+		buffer.WriteString(picture)
 		defer stmt.Close()
 		insertName := buffer.String()
 		c.JSON(http.StatusOK, gin.H{
@@ -94,18 +94,18 @@ func main() {
 	//Post
 	r.PUT("/person/put", func(c *gin.Context) {
 		var buffer bytes.Buffer
-		id := c.Query("id")
-		date := c.PostForm("date")
-		stmt, err := db.Prepare("UPDATE pic set date= ? where id= ?;")
+		// id := c.Query("id")
+		picture := c.PostForm("picture")
+		stmt, err := db.Prepare("UPDATE pic set picture= ? where id= ?;")
 		if err != nil {
 			log.Printf("Update fail : %s", err.Error())
 		}
-		_, err = stmt.Exec(date)
+		_, err = stmt.Exec(picture)
 		if err != nil {
 			log.Printf("Exec fail : %s", err.Error())
 
 		}
-		buffer.WriteString(date)
+		buffer.WriteString(picture)
 		defer stmt.Close()
 		PutName := buffer.String()
 		c.JSON(http.StatusOK, gin.H{
@@ -136,9 +136,9 @@ func main() {
 }
 
 type Pic struct {
-	Id   int
-	Name string
-	Date []byte
+	Id      int
+	Name    string
+	Picture string
 }
 
 // var db *sql.DB
